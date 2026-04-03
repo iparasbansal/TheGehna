@@ -1,5 +1,5 @@
 const Product = require('../models/Product');
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware/asynchandler');
 
 
 exports.createProduct = asyncHandler(async (req, res, next) => {
