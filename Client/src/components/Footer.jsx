@@ -8,7 +8,7 @@ const Footer = () => {
         </div>
         
         <div className="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold">
-          <a href="#" className="hover:text-brand-gold transition-colors">Instagram</a>
+          <a href="https://www.instagram.com/the_gehnaa/" className="hover:text-brand-gold transition-colors">Instagram</a>
           <a href="#" className="hover:text-brand-gold transition-colors">Facebook</a>
           <a href="#" className="hover:text-brand-gold transition-colors">Contact</a>
         </div>
