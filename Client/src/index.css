@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Tenor+Sans&display=swap');
+
+:root {
+  --gold: #d4a34d;
+  --dark: #0a0a0a; /* Pure black is more future than maroon */
+  --deep-red: #2d1212; /* Darker, blood-red shadow */
+}
+
+body {
+  background: var(--dark);
+  color: white;
+  cursor: crosshair; /* Changes the vibe immediately */
+  overflow-x: hidden;
+}
+
+/* THE GRAIN OVERLAY */
+body::before {
+  content: "";
+  fixed: top 0 left 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  z-index: 9999;
+}
+
+/* CUSTOM SCROLLBAR - Minimalist Gold Line */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+@theme {
+  /* This is the hex from your image */
+  --color-brand-maroon: #633131; 
+  --color-brand-gold: #d4a34d;
+  --color-brand-dark: #1a0d0d;
+}
+
+/* Now you can apply it to the body safely */
+@layer base {
+  body {
+    background-color: var(--color-brand-maroon);
+    color: white;
+    @apply antialiased;
+  }
+}
