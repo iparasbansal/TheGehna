@@ -170,7 +170,7 @@ export default function Home() {
       </AnimatePresence>
 
       <footer className="py-24 text-center border-t border-brand-gold/5 opacity-40">
-         <p className="text-brand-gold text-[10px] tracking-[0.8em] uppercase italic">© 2026 THE GEHNA • SANGUR</p>
+         <p className="text-brand-gold text-[10px] tracking-[0.8em] uppercase italic">© 2025 THE GEHNA • SANGRUR</p>
       </footer>
     </div>
   )

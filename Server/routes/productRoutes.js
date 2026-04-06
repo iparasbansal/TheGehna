@@ -1,41 +1,37 @@
 const express = require('express');
 const router = express.Router();
 const productManager = require('../controllers/productController');
-
-// --- THE SECURITY GUARDS ---
 const { protect, authorize } = require('../middleware/auth'); 
-
-// --- THE IMAGE UPLOADER ---
-// Make sure this matches your cloudinary.js export!
 const upload = require('../config/cloudinary'); 
-
-// Include other resource routers
 const reviewRouter = require('./reviewRoutes');
 
-// Re-route into other resource routers
+// 1. Middleware Re-routing
 router.use('/:productId/reviews', reviewRouter);
 
-// --- THE CATALOG ---
-
-// PUBLIC: Anyone can browse the 1-gram gold collection
+// 2. Collection Routes (Static paths go FIRST)
 router.get('/', productManager.getProducts);
 
-// ADMIN ONLY: Create a product (Multer must come BEFORE the controller)
+// --- NEW BULK ROUTE (Must be above /:id) ---
+router.post(
+    '/bulk', 
+    protect, 
+    authorize('admin'), 
+    productManager.bulkInsertProducts
+);
+
+// 3. Single Product Management (Admin)
 router.post(
     '/', 
     protect, 
     authorize('admin'), 
-    upload.single('image'), // This must be a function
+    upload.single('image'), 
     productManager.createProduct
 );
 
-// --- THE SPECIFIC ITEMS ---
-
-// PUBLIC: Get by Slug or ID
+// 4. Dynamic Parameter Routes (Go LAST)
 router.get('/slug/:slug', productManager.getProductBySlug);
 router.get('/:id', productManager.getSingleProduct);
 
-// ADMIN ONLY: Update or Delete
 router.put(
     '/:id', 
     protect, 

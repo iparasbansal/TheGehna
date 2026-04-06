@@ -1,67 +1,140 @@
 import { useState } from 'react';
 import axios from 'axios';
+import Papa from 'papaparse'; // Run: npm install papaparse
 
 const AdminDashboard = () => {
   const [formData, setFormData] = useState({
-    name: '', price: '', category: 'Necklace', description: '', stock: 1
+    name: '', price: '', category: 'Necklace', description: ''
   });
-
   const [file, setFile] = useState(null);
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
 
-const handleSubmit = async (e) => {
+  // --- 1. Single Product Upload Logic ---
+  const handleSubmit = async (e) => {
   e.preventDefault();
   
-  // Luxury brands use FormData for multi-part uploads (images + text)
+  const token = localStorage.getItem('token'); // Get your token
   const data = new FormData();
   data.append('name', formData.name);
   data.append('price', formData.price);
   data.append('description', formData.description);
-  data.append('image', file); // The actual 4K file
+  data.append('category', formData.category);
+  data.append('image', file); 
 
   try {
     await axios.post('http://localhost:3000/api/v1/products', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}` // ADD THIS LINE
+      }
     });
     alert("💎 Masterpiece Securely Uploaded!");
   } catch (err) {
-    console.error(err);
+    // This will tell you exactly what the backend is complaining about
+    alert(err.response?.data?.error || "Server Error");
   }
 };
 
-// Add this input to your form:
-<input 
-  type="file" 
-  onChange={(e) => setFile(e.target.files[0])}
-  className="mt-4 text-xs text-brand-gold file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-gold file:text-brand-maroon hover:file:bg-white transition-all"
-/>
+  // --- 2. Bulk CSV Upload Logic ---
+  const handleBulkUpload = (e) => {
+    const csvFile = e.target.files[0];
+    if (!csvFile) return;
+
+    setIsBulkLoading(true);
+
+    Papa.parse(csvFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          // Point this to your new bulk route in the backend
+          const response = await axios.post('http://localhost:3000/api/v1/products/bulk', results.data);
+          alert(`✅ Success: ${response.data.count} items added to The Vault!`);
+        } catch (err) {
+          alert("Bulk Upload Error: " + (err.response?.data?.error || "Check CSV format"));
+        } finally {
+          setIsBulkLoading(false);
+          e.target.value = null; // Reset input
+        }
+      }
+    });
+  };
 
   return (
-    <div className="pt-32 pb-20 px-10 min-h-screen bg-brand-dark text-white">
-      <h1 className="text-4xl font-serif text-brand-gold mb-10">Inventory Vault</h1>
-      
-      <form onSubmit={handleSubmit} className="max-w-2xl bg-zinc-900/50 p-8 rounded-3xl border border-brand-gold/20">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs uppercase tracking-widest text-brand-gold">Product Name</label>
-            <input 
-              className="bg-black/50 border border-white/10 p-3 rounded-xl focus:border-brand-gold outline-none"
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-xs uppercase tracking-widest text-brand-gold">Price (₹)</label>
-            <input 
-              type="number"
-              className="bg-black/50 border border-white/10 p-3 rounded-xl focus:border-brand-gold outline-none"
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
-            />
-          </div>
+    <div className="pt-32 pb-20 px-10 min-h-screen bg-[#633131] text-white">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-serif text-[#d4a34d] mb-2 tracking-widest uppercase">Inventory Vault</h1>
+        <p className="text-white/40 text-[10px] uppercase tracking-[0.3em] mb-12">THE GEHNA ADMINISTRATION</p>
+
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
+          
+          {/* --- SECTION: MANUAL UPLOAD --- */}
+          <section className="bg-black/20 backdrop-blur-md p-8 rounded-3xl border border-white/5 shadow-2xl">
+            <h3 className="text-[#d4a34d] text-xs font-bold uppercase tracking-widest mb-6">Manual Entry</h3>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] uppercase tracking-widest text-[#d4a34d]/60">Product Name</label>
+                  <input 
+                    className="bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[#d4a34d] outline-none text-sm transition-all"
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] uppercase tracking-widest text-[#d4a34d]/60">Price (₹)</label>
+                  <input 
+                    type="number"
+                    className="bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[#d4a34d] outline-none text-sm transition-all"
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] uppercase tracking-widest text-[#d4a34d]/60">Product Image</label>
+                <input 
+                  type="file" 
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="text-xs text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-[#d4a34d] file:text-[#633131] cursor-pointer hover:file:bg-white transition-all"
+                />
+              </div>
+
+              <button className="w-full py-4 bg-[#d4a34d] text-[#633131] font-bold rounded-xl hover:bg-white transition-all uppercase text-xs tracking-widest shadow-xl">
+                Upload Single Item
+              </button>
+            </form>
+          </section>
+
+          {/* --- SECTION: BULK UPLOAD --- */}
+          <section className="bg-black/20 backdrop-blur-md p-8 rounded-3xl border border-dashed border-[#d4a34d]/30 flex flex-col justify-center items-center text-center h-full min-h-[300px]">
+            <div className="mb-6">
+              <h3 className="text-[#d4a34d] text-xs font-bold uppercase tracking-widest mb-2">Bulk Collection Upload</h3>
+              <p className="text-white/40 text-[10px] max-w-[200px] mx-auto uppercase">Upload a CSV file to add multiple articles at once</p>
+            </div>
+
+            <label className="cursor-pointer group">
+              <div className="flex flex-col items-center p-10 bg-white/5 rounded-2xl border border-white/10 group-hover:border-[#d4a34d] transition-all">
+                <span className="text-3xl mb-4">📄</span>
+                <span className="text-[10px] font-bold uppercase text-[#d4a34d]">
+                  {isBulkLoading ? "Processing Collection..." : "Choose CSV File"}
+                </span>
+                <input 
+                  type="file" 
+                  accept=".csv" 
+                  onChange={handleBulkUpload} 
+                  className="hidden" 
+                  disabled={isBulkLoading}
+                />
+              </div>
+            </label>
+            
+            <p className="mt-4 text-[9px] text-white/20 italic">Format: name, price, category, description, imageUrl</p>
+          </section>
+
         </div>
-        
-        <button className="mt-10 w-full py-4 bg-brand-gold text-brand-maroon font-bold rounded-xl hover:bg-white transition-colors">
-          UPLOAD TO SHOWROOM
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

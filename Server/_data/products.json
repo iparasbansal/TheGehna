@@ -1,0 +1,93 @@
+[
+  {
+    "name": "Gold Floral Filigree Pendant Mangalsutra",
+    "description": "This elegant mangalsutra features a stunning gold pendant with delicate floral filigree and fine beadwork. Its timeless design with multiple strands of black beads offers a sophisticated look perfect for special occasions.",
+    "price": 13050,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775420089/THE_GEHNA_PRODUCTS/iwmgfcrliausctsouodm.png",
+        "public_id": "THE_GEHNA_PRODUCTS/iwmgfcrliausctsouodm"
+      }
+    ],
+    "stock": 10
+  },
+  {
+    "name": "Classic Gold Franco Link Chain",
+    "description": "A classic and versatile gold link chain, this piece is perfect for everyday wear or layering with pendants. The sturdy Franco link design offers a polished finish and a timeless appeal.",
+    "price": 18200,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775420131/THE_GEHNA_PRODUCTS/yzy1owazcxacf2axfon8.png",
+        "public_id": "THE_GEHNA_PRODUCTS/yzy1owazcxacf2axfon8"
+      }
+    ],
+    "stock": 15
+  },
+  {
+    "name": "Diamond Cluster Pendant & Chain",
+    "description": "This elegant diamond cluster pendant is set in warm yellow gold and presented on a diamond-accented chain, featuring a delicate floral-inspired setting that beautifully catches the light.",
+    "price": 21000,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775420180/THE_GEHNA_PRODUCTS/jlqgm6qgcagg7tds8osi.png",
+        "public_id": "THE_GEHNA_PRODUCTS/jlqgm6qgcagg7tds8osi"
+      }
+    ],
+    "stock": 5
+  },
+  {
+    "name": "Majestic Ruby & Pearl Heritage Choker Set",
+    "description": "Elevate your bridal or festive look with this exquisite heritage jewelry ensemble. Features a stunning choker necklace crafted with multiple strands of pearls and ornate gold-toned motifs set with vibrant pink stones.",
+    "price": 22600,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775420312/THE_GEHNA_PRODUCTS/qepctpltx70gpsq3pjtt.png",
+        "public_id": "THE_GEHNA_PRODUCTS/qepctpltx70gpsq3pjtt"
+      }
+    ],
+    "stock": 8
+  },
+  {
+    "name": "Regal Mandala Filigree Necklace Set",
+    "description": "Inspired by traditional Indian artistry, this piece features a magnificent, oversized circular mandala pendant with intricate floral filigree work, paired with matching earrings for a grand statement.",
+    "price": 18200,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775420629/THE_GEHNA_PRODUCTS/i7vigo8nv4dynzpqzudt.png",
+        "public_id": "THE_GEHNA_PRODUCTS/i7vigo8nv4dynzpqzudt"
+      }
+    ],
+    "stock": 12
+  },
+  {
+    "name": "Grand Heritage Filigree Bridal Set",
+    "description": "The central piece is adorned with cascading gold tassels that create a beautiful sense of movement and luxury. Paired with matching long drop earrings, this set captures the essence of royal heritage.",
+    "price": 22000,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775421637/THE_GEHNA_PRODUCTS/syhhttvfcfxrmrc6xs6x.png",
+        "public_id": "THE_GEHNA_PRODUCTS/syhhttvfcfxrmrc6xs6x"
+      }
+    ],
+    "stock": 7
+  },
+  {
+    "name": "Regal Emerald & Pearl Heritage Choker Set",
+    "description": "Exude timeless grace with this exquisitely designed choker composed of multiple strands of lustrous pearls, beautifully punctuated by five ornate gold-toned square panels set with deep green stones.",
+    "price": 27700,
+    "category": "Necklace",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/du20pngfg/image/upload/v1775421747/THE_GEHNA_PRODUCTS/qrqlaxg40guqg7j7hcta.png",
+        "public_id": "THE_GEHNA_PRODUCTS/qrqlaxg40guqg7j7hcta"
+      }
+    ],
+    "stock": 4
+  }
+]

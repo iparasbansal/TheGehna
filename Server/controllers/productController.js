@@ -1,6 +1,19 @@
 const Product = require('../models/Product');
 const asyncHandler = require('../middleware/asynchandler');
 
+// @desc    Bulk insert products
+// @route   POST /api/v1/products/bulk
+exports.bulkInsertProducts = asyncHandler(async (req, res, next) => {
+    // req.body will be an array of product objects from PapaParse
+    const products = await Product.insertMany(req.body);
+
+    res.status(201).json({
+        success: true,
+        count: products.length,
+        message: `${products.length} Items added to the collection`
+    });
+});
+
 // @desc    Get all products (with Search, Filter, & Sort)
 // @route   GET /api/v1/products
 exports.getProducts = asyncHandler(async (req, res, next) => {

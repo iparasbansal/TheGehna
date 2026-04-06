@@ -14,6 +14,8 @@ import Auth from './pages/Auth';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
+import Collection from './pages/Collection'; // Import the new file
+import Heritage from './pages/Heritage';
 
 
 
@@ -29,6 +31,8 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/heritage" element={<Heritage />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/profile" element={<Profile />} />

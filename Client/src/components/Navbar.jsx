@@ -1,83 +1,113 @@
-import { useState } from 'react';
-import { ShoppingBag, User, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, User, Search, X } from 'lucide-react';
 import { useCart, useAuth } from '../main'; 
-import { Link } from 'react-router-dom';
-import SearchOverlay from './SearchOverlay';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const { cart, setIsOpen } = useCart(); 
   const { user, loading } = useAuth(); 
   const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const navigate = useNavigate();
+  const searchRef = useRef(null);
+
+  // 1. SCROLL LOGIC
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 2. CLOSE SEARCH ON CLICK OUTSIDE
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // 3. SEARCH EXECUTION LOGIC
+  const handleSearchSubmit = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== "") {
+      // Navigates to collection page with the query: /collection?search=kada
+      navigate(`/collection?search=${searchQuery.trim()}`);
+      setSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
 
   return (
-    <>
-      <nav className="fixed top-0 w-full z-[100] flex justify-between items-center px-8 md:px-16 py-8 bg-transparent">
+    <nav className={`fixed top-0 w-full z-[100] transition-all duration-700 px-6 md:px-16 
+      ${scrolled ? 'py-4 bg-brand-dark/90 backdrop-blur-2xl border-b border-white/5' : 'py-8 bg-transparent'}`}>
+      
+      <div className="max-w-[1800px] mx-auto flex justify-between items-center">
         
-        {/* TOP LEFT LOGO - IMAGE ONLY */}
-        <div className="flex-1 flex justify-start">
-          <Link to="/" className="group relative">
-            <img 
-              src="/logobg.png" 
-              alt="THE GEHNA" 
-              className="h-10 md:h-14 w-auto object-contain transition-all duration-700 
-                         group-hover:scale-110 group-hover:drop-shadow-[0_0_15px_rgba(212,163,77,0.4)]" 
-            />
-            {/* Elegant underline reveal */}
-            <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-brand-gold transition-all duration-700 group-hover:w-full opacity-20"></div>
+        {/* LOGO SECTION */}
+        <div className="flex-1 flex justify-start items-center gap-10">
+          <Link to="/" className="shrink-0">
+            <img src="/logobg.png" alt="THE GEHNA" className={`transition-all duration-700 ${scrolled ? 'h-10' : 'h-14'}`} />
           </Link>
-        </div>
-        
-        {/* RIGHT SIDE - MINIMALIST ICON TOOLKIT */}
-        <div className="flex gap-10 text-brand-gold/60 items-center">
           
-          {/* Minimalist Search Icon */}
-          <button 
-            onClick={() => setSearchOpen(true)}
-            className="hover:text-brand-gold cursor-pointer transition-all hover:scale-125 duration-300 outline-none"
-          >
-            <Search size={18} strokeWidth={1.2} />
-          </button>
-
-          {/* DYNAMIC AVATAR SECTION */}
-          {loading ? (
-            <div className="w-5 h-5 border border-brand-gold/30 border-t-brand-gold rounded-full animate-spin"></div>
-          ) : user ? (
-            <Link 
-                to="/profile" 
-                className="relative group flex items-center"
-            >
-                <div className="w-9 h-9 rounded-full border border-brand-gold/10 flex items-center justify-center bg-white/5 group-hover:border-brand-gold/40 transition-all duration-700 shadow-[0_0_20px_rgba(212,163,77,0.1)]">
-                  <span className="text-[10px] font-bold tracking-widest text-brand-gold">
-                      {user.name[0].toUpperCase()}
-                  </span>
-                </div>
-                {/* Orbital Ring Animation */}
-                <div className="absolute inset-[-3px] rounded-full border border-brand-gold/0 group-hover:border-brand-gold/20 transition-all duration-1000 scale-50 group-hover:scale-100 opacity-0 group-hover:opacity-100"></div>
-            </Link>
-          ) : (
-            <Link to="/login" className="hover:text-brand-gold transition-all duration-500 hover:scale-125">
-                <User size={19} strokeWidth={1.2} />
-            </Link>
+          {!searchOpen && (
+            <div className="hidden lg:flex gap-8 reveal">
+              <Link to="/collection" className="nav-link">Collection</Link>
+              <Link to="/heritage" className="nav-link">Heritage</Link>
+            </div>
           )}
+        </div>
+
+        {/* TOOLKIT SECTION */}
+        <div className="flex items-center gap-6 md:gap-10">
           
-          {/* THE VAULT BAG */}
-          <div className="relative cursor-pointer group" onClick={() => setIsOpen(true)}>
-            <ShoppingBag size={19} strokeWidth={1.2} className="group-hover:text-brand-gold transition-all duration-300" />
-            {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-brand-gold text-black text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black shadow-[0_0_10px_#d4a34d]">
-                {cart.length}
-              </span>
+          {/* INLINE SEARCH BAR */}
+          <div ref={searchRef}>
+            {!searchOpen ? (
+              <button onClick={() => setSearchOpen(true)} className="text-brand-gold/60 hover:text-brand-gold transition-all p-2">
+                <Search size={19} strokeWidth={1} />
+              </button>
+            ) : (
+              <div className="search-container reveal flex items-center gap-3">
+                <Search size={16} className="text-brand-gold" />
+                <input 
+                  autoFocus
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchSubmit}
+                  className="search-input uppercase"
+                  placeholder="SEARCH COLLECTION..." 
+                />
+                <button onClick={() => setSearchOpen(false)}><X size={14} className="opacity-30 hover:opacity-100" /></button>
+              </div>
             )}
           </div>
-        </div>
-      </nav>
 
-      {/* Global Search Component */}
-      <SearchOverlay 
-        isOpen={searchOpen} 
-        onClose={() => setSearchOpen(false)} 
-      />
-    </>
+          {/* USER & CART */}
+          <div className="flex items-center gap-6">
+            {user ? (
+              <Link to="/profile" className="w-8 h-8 rounded-full border border-brand-gold/20 flex items-center justify-center font-bold text-brand-gold text-[10px]">
+                {user.name[0].toUpperCase()}
+              </Link>
+            ) : (
+              <Link to="/login" className="text-brand-gold/60 hover:text-brand-gold"><User size={20} strokeWidth={1} /></Link>
+            )}
+            
+            <div className="relative cursor-pointer" onClick={() => setIsOpen(true)}>
+              <ShoppingBag size={20} strokeWidth={1} className="text-brand-gold/60 hover:text-brand-gold" />
+              {cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-brand-gold text-black text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-black">
+                  {cart.length}
+                </span>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </nav>
   );
 };
 

@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 // 1. Import all functions from your Auth Controller
-// Make sure these names match exactly what you wrote in controllers/authController.js
+// Ensure these names match your authController.js exports exactly
 const { 
+    sendEmailOTP,
     register, 
     login, 
     forgotPassword, 
@@ -11,20 +12,32 @@ const {
     resetPassword 
 } = require('../controllers/authController');
 
-// 2. Public Auth Routes
+// 2. Middleware for protected routes
+const { protect } = require('../middleware/auth');
+
+// --- AUTHENTICATION ROUTES ---
+
+// Step 1: Request the OTP
+router.post('/send-otp', sendEmailOTP);
+
+// Step 2: Finalize Registration (Verify OTP + Create User)
 router.post('/register', register);
+
+// Standard Login
 router.post('/login', login);
 
-const { protect } = require('../middleware/auth'); // Import the protect middleware
+// --- PASSWORD RECOVERY ROUTES ---
 
-// 3. Password Recovery Routes
-// Note: forgotPassword uses POST because we are sending data (email)
+// Sends the reset link/token to email
 router.post('/forgotpassword', forgotPassword);
 
-router.get('/me', protect, getMe);
-
-// Note: resetPassword uses PUT because we are updating an existing user's password
-// The :resettoken is a URL parameter that will hold the unique string sent to Mailtrap
+// Updates the password using the token from the email
 router.put('/resetpassword/:resettoken', resetPassword);
 
+// --- USER PROFILE ROUTES ---
+
+// Get current logged-in user details (Protected)
+router.get('/me', protect, getMe);
+
+// 3. Export the router using CommonJS
 module.exports = router;
