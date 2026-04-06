@@ -8,15 +8,19 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
   const timeRef = useRef(0)
 
-  // OPTIMIZED PHYSICS FOR MOBILE: Smaller ranges so they stay on the iPhone screen
+  // --- ADDED RANDOMNESS ENGINE ---
   const physics = useMemo(() => {
     const isMobile = window.innerWidth < 768;
+    // Unique "DNA" for each card's movement
+    const randomSeed = Math.random() * 2;
     return {
-      speed: 0.0002 + (index * 0.00005), 
-      rangeX: isMobile ? 140 + (index % 3) * 20 : 450 + (index % 4) * 40, // Narrower for phone
-      rangeY: isMobile ? 80 + (index % 2) * 20 : 120 + (index % 3) * 30,
-      depth: isMobile ? 50 + (index % 2) * 50 : 200 + (index % 2) * 100,
-      phase: (index / 8) * Math.PI * 2,
+      speed: 0.00015 + (index * 0.00008) * randomSeed, 
+      rangeX: isMobile ? 130 + (index % 3) * 30 : 400 + (index % 5) * 60,
+      rangeY: isMobile ? 70 + (index % 4) * 25 : 150 + (index % 3) * 40,
+      depth: isMobile ? 40 + (index % 2) * 60 : 250 + (index % 2) * 120,
+      phaseX: (index / 8) * Math.PI * 2,
+      phaseY: Math.random() * Math.PI, // Random start vertical
+      drift: Math.random() * 0.5 // Subtle drift offset
     }
   }, [index]);
   
@@ -24,11 +28,13 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
     if (!product) return;
     const animate = () => {
       timeRef.current += 1
-      const t = timeRef.current * physics.speed + physics.phase
+      const t = timeRef.current * physics.speed
+      
       setPosition({
-        x: Math.cos(t) * physics.rangeX,
-        y: Math.sin(t * 0.5) * physics.rangeY,
-        z: Math.sin(t) * physics.depth - 150
+        // Using different phases for X and Y creates an "Infinity" or "DNA" path rather than a circle
+        x: Math.cos(t + physics.phaseX) * physics.rangeX,
+        y: Math.sin(t * 0.7 + physics.phaseY) * physics.rangeY,
+        z: Math.sin(t + physics.phaseX) * physics.depth - 100
       })
       requestAnimationFrame(animate)
     }
@@ -43,13 +49,12 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
         transform: `translate(-50%, -50%) translate3d(${position.x}px, ${position.y}px, ${position.z}px) scale(${isHovered ? 1.4 : 1})`,
         transformStyle: "preserve-3d",
         zIndex: isHovered ? 1000 : Math.round(position.z + 500),
-        willChange: "transform", // FORCE IPHONE GPU
+        willChange: "transform",
       }}
       onMouseEnter={() => onHover(product._id)}
       onMouseLeave={() => onHover(null)}
       onClick={onClick}
     >
-      {/* Smaller card size for mobile */}
       <div className={`w-24 h-32 md:w-40 md:h-56 rounded-lg border border-brand-gold/20 transition-all duration-1000 ${isHovered ? 'border-brand-gold shadow-[0_0_80px_rgba(212,163,77,0.4)]' : 'bg-black/60 shadow-2xl'}`}>
         <img src={product.images?.[0]?.url || "/logo.png"} className="w-full h-20 md:h-32 object-cover rounded-t-lg opacity-90" alt={product.name} />
         <div className="p-1 md:p-3 text-center">
@@ -85,10 +90,10 @@ export default function Home() {
     fetch()
   }, [])
 
-  if (loading) return <div className="h-screen w-full bg-obsidian flex items-center justify-center"><div className="w-10 h-10 border-2 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" /></div>
+  if (loading) return <div className="h-screen w-full bg-[#050505] flex items-center justify-center"><div className="w-10 h-10 border-2 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" /></div>
 
   return (
-    <div className="bg-obsidian text-ivory min-h-screen font-sans selection:bg-brand-gold overflow-x-hidden">
+    <div className="bg-[#050505] text-ivory min-h-screen font-sans selection:bg-brand-gold overflow-x-hidden">
       
       <div className="fixed inset-0 z-0 bg-[#050505]" />
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-brand-dark/20 to-brand-maroon/10" />
@@ -97,7 +102,7 @@ export default function Home() {
       <motion.section style={{ opacity }} className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
         <div className="z-20 text-center pointer-events-none relative px-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 2, ease: "easeOut" }}>
-            <h1 className="text-5xl md:text-9xl lg:text-[9vw] font-serif tracking-[0.2em] md:tracking-[0.4em] uppercase leading-none text-[#d4a34d] drop-shadow-[0_0_50px_rgba(212,163,77,0.6)] selection:text-gold filter brightness-125">
+            <h1 className="text-5xl md:text-9xl lg:text-[9vw] font-serif tracking-[0.2em] md:tracking-[0.4em] uppercase leading-none text-[#d4a34d] drop-shadow-[0_0_50px_rgba(212,163,77,0.6)] filter brightness-125">
               THE GEHNA
             </h1>
             <p className="text-[#d4a34d]/60 tracking-[0.8em] md:tracking-[1.5em] text-[8px] md:text-[11px] uppercase mt-8 md:mt-12 md:ml-[1.5em] font-light">
@@ -106,53 +111,54 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* 3D MAJESTIC ORBIT - REMOVED 'hidden' so they show on iPhone */}
-        <div 
-          className="absolute inset-0 flex items-center justify-center pointer-events-none" 
-          style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
-        >
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ perspective: "1200px", transformStyle: "preserve-3d" }}>
           {products.slice(0, 6).map((p, i) => (
-            <FlyingCard 
-              key={p._id} 
-              product={p} 
-              index={i} 
-              onHover={setHoveredCard} 
-              isHovered={hoveredCard === p._id} 
-              onClick={() => setSelectedProduct(p)} 
-            />
+            <FlyingCard key={p._id} product={p} index={i} onHover={setHoveredCard} isHovered={hoveredCard === p._id} onClick={() => setSelectedProduct(p)} />
           ))}
         </div>
         
         <div className="absolute bottom-12 z-30 flex flex-col items-center gap-4">
-           <button onClick={() => gridRef.current?.scrollIntoView({ behavior: 'smooth' })} className="px-8 md:px-10 py-4 rounded-full border border-brand-gold/30 bg-black/40 backdrop-blur-sm text-brand-gold text-[9px] md:text-[10px] tracking-[0.3em] uppercase hover:bg-brand-gold hover:text-black transition-all duration-500">
+           <button onClick={() => gridRef.current?.scrollIntoView({ behavior: 'smooth' })} className="px-8 md:px-10 py-4 rounded-full border border-brand-gold/30 bg-black/40 backdrop-blur-sm text-brand-gold text-[9px] md:text-[10px] tracking-[0.3em] uppercase hover:bg-brand-gold hover:text-black transition-all">
               Browse Collection
            </button>
            <ChevronDown className="text-brand-gold/40 animate-bounce" size={20} />
         </div>
       </motion.section>
 
-      {/* PRODUCT GRID SECTION */}
+      {/* --- GRID SECTION: BUTTONS MOVED TO BOTTOM --- */}
       <section ref={gridRef} className="relative z-20 py-20 md:py-40 px-4 md:px-24 max-w-[1600px] mx-auto bg-[#050505]">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-12 md:gap-x-16 md:gap-y-32">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-16">
           {products.map((product) => (
             <motion.div 
               key={product._id} 
-              className="group cursor-pointer relative"
+              className="group cursor-pointer relative flex flex-col"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.1 }}
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-[#080808] border border-brand-gold/10 shadow-2xl">
-                <img src={product.images?.[0]?.url || "/logo.png"} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-all duration-1000" alt={product.name} />
-                <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3 md:gap-6">
-                  <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="p-3 md:p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl">
-                    <Eye size={16} />
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="p-3 md:p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl">
-                    <ShoppingBag size={16} />
-                  </button>
+                <img src={product.images?.[0]?.url || "/logo.png"} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-1000" alt={product.name} />
+                
+                {/* DESKTOP HOVER OVERLAY (Stays centered for large screens) */}
+                <div className="hidden md:flex absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 items-center justify-center gap-6">
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl hover:bg-brand-gold hover:text-black transition-all"><Eye size={18} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl hover:bg-brand-gold hover:text-black transition-all"><ShoppingBag size={18} /></button>
+                </div>
+
+                {/* MOBILE BOTTOM BAR (Solves the brightness issue) */}
+                <div className="flex md:hidden absolute bottom-0 left-0 right-0 h-12 bg-black/60 backdrop-blur-md border-t border-brand-gold/20 items-center justify-around px-2">
+                   <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="flex items-center gap-2 text-brand-gold">
+                      <Eye size={16} />
+                      <span className="text-[8px] tracking-widest uppercase">View</span>
+                   </button>
+                   <div className="h-4 w-[1px] bg-brand-gold/20" />
+                   <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="flex items-center gap-2 text-brand-gold">
+                      <ShoppingBag size={16} />
+                      <span className="text-[8px] tracking-widest uppercase">Bag</span>
+                   </button>
                 </div>
               </div>
+              
               <div className="mt-4 md:mt-10 flex flex-col md:flex-row justify-between items-start md:items-baseline border-b border-brand-gold/10 pb-4 md:pb-6">
                   <h4 className="text-xs md:text-xl font-serif tracking-[0.1em] text-brand-gold uppercase">{product.name}</h4>
                   <span className="text-brand-gold/60 font-mono text-[10px] md:text-sm">₹{product.price}</span>
@@ -165,7 +171,7 @@ export default function Home() {
       {/* QUICK VIEW MODAL */}
       <AnimatePresence>
         {selectedProduct && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-md flex items-center justify-center p-4 md:p-6" onClick={() => setSelectedProduct(null)}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
             <motion.div onClick={e => e.stopPropagation()} className="relative max-w-4xl w-full bg-[#0a0a0a] border border-brand-gold/20 rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2 max-h-[90vh] overflow-y-auto">
               <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 text-brand-gold"><X size={24} /></button>
               <div className="h-64 md:h-full bg-black"><img src={selectedProduct.images?.[0]?.url} className="w-full h-full object-cover" alt={selectedProduct.name} /></div>
