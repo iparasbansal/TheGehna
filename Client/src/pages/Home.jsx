@@ -1,26 +1,35 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
-import { ArrowRight, Sparkles, ChevronDown, Eye, ShoppingBag, X } from "lucide-react"
+import { Eye, ShoppingBag, X, ChevronDown } from "lucide-react"
 import API from '../api' 
 import { useCart } from '../main' 
 
+// --- 3D ENGINE (CHAOTIC LISSAJOUS MOTION) ---
 function FlyingCard({ product, index, onHover, isHovered, onClick }) {
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
   const timeRef = useRef(0)
 
-  // --- ADDED RANDOMNESS ENGINE ---
+  // TRUE RANDOMNESS PHYSICS
   const physics = useMemo(() => {
     const isMobile = window.innerWidth < 768;
-    // Unique "DNA" for each card's movement
-    const randomSeed = Math.random() * 2;
     return {
-      speed: 0.00015 + (index * 0.00008) * randomSeed, 
-      rangeX: isMobile ? 130 + (index % 3) * 30 : 400 + (index % 5) * 60,
-      rangeY: isMobile ? 70 + (index % 4) * 25 : 150 + (index % 3) * 40,
-      depth: isMobile ? 40 + (index % 2) * 60 : 250 + (index % 2) * 120,
-      phaseX: (index / 8) * Math.PI * 2,
-      phaseY: Math.random() * Math.PI, // Random start vertical
-      drift: Math.random() * 0.5 // Subtle drift offset
+      // Independent speeds for X, Y, and Z to break circular patterns
+      speedX: 0.0001 + Math.random() * 0.00015,
+      speedY: 0.00008 + Math.random() * 0.00012,
+      speedZ: 0.00012 + Math.random() * 0.0001,
+      
+      // Responsive ranges
+      rangeX: isMobile ? (120 + Math.random() * 80) : (400 + Math.random() * 200),
+      rangeY: isMobile ? (60 + Math.random() * 60) : (150 + Math.random() * 100),
+      rangeZ: isMobile ? (50 + Math.random() * 50) : (200 + Math.random() * 150),
+      
+      // Unique starting points
+      phaseX: Math.random() * Math.PI * 2,
+      phaseY: Math.random() * Math.PI * 2,
+      phaseZ: Math.random() * Math.PI * 2,
+
+      // Variation in the "wobble" frequency
+      wobble: 0.4 + Math.random() * 0.6
     }
   }, [index]);
   
@@ -28,13 +37,13 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
     if (!product) return;
     const animate = () => {
       timeRef.current += 1
-      const t = timeRef.current * physics.speed
+      const t = timeRef.current
       
+      // Lissajous curves create "figure-eight" or "knot" paths instead of circles
       setPosition({
-        // Using different phases for X and Y creates an "Infinity" or "DNA" path rather than a circle
-        x: Math.cos(t + physics.phaseX) * physics.rangeX,
-        y: Math.sin(t * 0.7 + physics.phaseY) * physics.rangeY,
-        z: Math.sin(t + physics.phaseX) * physics.depth - 100
+        x: Math.cos(t * physics.speedX + physics.phaseX) * physics.rangeX,
+        y: Math.sin(t * physics.speedY * physics.wobble + physics.phaseY) * physics.rangeY,
+        z: Math.sin(t * physics.speedZ + physics.phaseZ) * physics.rangeZ - 100
       })
       requestAnimationFrame(animate)
     }
@@ -49,7 +58,7 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
         transform: `translate(-50%, -50%) translate3d(${position.x}px, ${position.y}px, ${position.z}px) scale(${isHovered ? 1.4 : 1})`,
         transformStyle: "preserve-3d",
         zIndex: isHovered ? 1000 : Math.round(position.z + 500),
-        willChange: "transform",
+        willChange: "transform", // Vital for iPhone performance
       }}
       onMouseEnter={() => onHover(product._id)}
       onMouseLeave={() => onHover(null)}
@@ -95,10 +104,12 @@ export default function Home() {
   return (
     <div className="bg-[#050505] text-ivory min-h-screen font-sans selection:bg-brand-gold overflow-x-hidden">
       
+      {/* BACKGROUND LAYERS */}
       <div className="fixed inset-0 z-0 bg-[#050505]" />
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-brand-dark/20 to-brand-maroon/10" />
       <div className="fixed inset-0 pointer-events-none z-[5] bg-[radial-gradient(circle_at_center,rgba(212,163,77,0.12)_0%,transparent_50%)]" />
 
+      {/* HERO SECTION */}
       <motion.section style={{ opacity }} className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
         <div className="z-20 text-center pointer-events-none relative px-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 2, ease: "easeOut" }}>
@@ -111,6 +122,7 @@ export default function Home() {
           </motion.div>
         </div>
 
+        {/* WANDERING CARDS - ACTIVE ON ALL SCREENS */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ perspective: "1200px", transformStyle: "preserve-3d" }}>
           {products.slice(0, 6).map((p, i) => (
             <FlyingCard key={p._id} product={p} index={i} onHover={setHoveredCard} isHovered={hoveredCard === p._id} onClick={() => setSelectedProduct(p)} />
@@ -125,7 +137,7 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* --- GRID SECTION: BUTTONS MOVED TO BOTTOM --- */}
+      {/* PRODUCT GRID - OPTIMIZED FOR MOBILE */}
       <section ref={gridRef} className="relative z-20 py-20 md:py-40 px-4 md:px-24 max-w-[1600px] mx-auto bg-[#050505]">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-16">
           {products.map((product) => (
@@ -137,24 +149,28 @@ export default function Home() {
               viewport={{ once: true, amount: 0.1 }}
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-[#080808] border border-brand-gold/10 shadow-2xl">
-                <img src={product.images?.[0]?.url || "/logo.png"} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-1000" alt={product.name} />
+                <img 
+                  src={product.images?.[0]?.url || "/logo.png"} 
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-1000" 
+                  alt={product.name} 
+                />
                 
-                {/* DESKTOP HOVER OVERLAY (Stays centered for large screens) */}
+                {/* DESKTOP HOVER OVERLAY */}
                 <div className="hidden md:flex absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 items-center justify-center gap-6">
                   <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl hover:bg-brand-gold hover:text-black transition-all"><Eye size={18} /></button>
                   <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="p-4 rounded-full border border-brand-gold/40 text-brand-gold backdrop-blur-xl hover:bg-brand-gold hover:text-black transition-all"><ShoppingBag size={18} /></button>
                 </div>
 
-                {/* MOBILE BOTTOM BAR (Solves the brightness issue) */}
-                <div className="flex md:hidden absolute bottom-0 left-0 right-0 h-12 bg-black/60 backdrop-blur-md border-t border-brand-gold/20 items-center justify-around px-2">
-                   <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="flex items-center gap-2 text-brand-gold">
-                      <Eye size={16} />
-                      <span className="text-[8px] tracking-widest uppercase">View</span>
+                {/* MOBILE BOTTOM BAR (Solves brightness & usability issues) */}
+                <div className="flex md:hidden absolute bottom-0 left-0 right-0 h-12 bg-black/70 backdrop-blur-md border-t border-brand-gold/20 items-center justify-around">
+                   <button onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }} className="flex items-center gap-2 text-brand-gold/90">
+                      <Eye size={14} />
+                      <span className="text-[7px] tracking-widest uppercase">View</span>
                    </button>
-                   <div className="h-4 w-[1px] bg-brand-gold/20" />
-                   <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="flex items-center gap-2 text-brand-gold">
-                      <ShoppingBag size={16} />
-                      <span className="text-[8px] tracking-widest uppercase">Bag</span>
+                   <div className="h-4 w-[1px] bg-brand-gold/10" />
+                   <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="flex items-center gap-2 text-brand-gold/90">
+                      <ShoppingBag size={14} />
+                      <span className="text-[7px] tracking-widest uppercase">Add</span>
                    </button>
                 </div>
               </div>
@@ -176,7 +192,7 @@ export default function Home() {
               <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 text-brand-gold"><X size={24} /></button>
               <div className="h-64 md:h-full bg-black"><img src={selectedProduct.images?.[0]?.url} className="w-full h-full object-cover" alt={selectedProduct.name} /></div>
               <div className="p-8 md:p-12 flex flex-col justify-center gap-6">
-                <h2 className="text-3xl md:text-5xl font-serif text-brand-gold uppercase">{selectedProduct.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-serif text-brand-gold uppercase leading-tight">{selectedProduct.name}</h2>
                 <p className="text-white/40 text-[10px] md:text-xs uppercase tracking-[0.2em]">{selectedProduct.description || "Exquisite 1-gram gold acquisition."}</p>
                 <div className="text-2xl font-mono text-brand-gold">₹{selectedProduct.price}</div>
                 <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="w-full py-4 bg-brand-gold text-black font-bold uppercase tracking-[0.2em]">Add to Vault</button>
