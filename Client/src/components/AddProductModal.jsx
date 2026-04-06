@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../api';
+// 1. Ensure the import matches your file structure (pointing to your new api.js)
+import api from '../api'; 
 import { X, Upload } from 'lucide-react';
 
 const AddProductModal = ({ isOpen, onClose, refreshData, editData }) => {
@@ -9,7 +10,6 @@ const AddProductModal = ({ isOpen, onClose, refreshData, editData }) => {
     name: '', price: '', description: '', category: 'Necklace'
   });
 
-  // Sync internal state with editData whenever modal opens/changes
   useEffect(() => {
     if (editData) {
       setProductData({
@@ -25,54 +25,46 @@ const AddProductModal = ({ isOpen, onClose, refreshData, editData }) => {
   }, [editData, isOpen]);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  const token = localStorage.getItem('token');
-  
-  const formData = new FormData();
-  formData.append('name', productData.name);
-  formData.append('price', productData.price);
-  formData.append('description', productData.description);
-  formData.append('category', productData.category);
-
-  // 1. IMAGE CHECK: Only append if 'image' is a new File object
-  // If we are editing and didn't pick a new photo, 'image' might be null/string
-  if (image && typeof image !== 'string') {
-    formData.append('image', image); 
-    console.log("Sending NEW file to Cloudinary");
-} else {
-    console.log("No new file selected, keeping existing image");
-}
-
-  try {
-    // 2. DYNAMIC URL & METHOD
-    // If editData exists, we are UPDATING. If not, we are ADDING.
-    const url = editData 
-      ? `http://localhost:3000/api/v1/products/${editData._id}` 
-      : `http://localhost:3000/api/v1/products`;
+    e.preventDefault();
+    setLoading(true);
     
-    const method = editData ? 'put' : 'post';
+    // No need to manually grab token here; api.js interceptor handles it now!
+    
+    const formData = new FormData();
+    formData.append('name', productData.name);
+    formData.append('price', productData.price);
+    formData.append('description', productData.description);
+    formData.append('category', productData.category);
 
-    await axios({
-      method: method,
-      url: url,
-      data: formData,
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data' 
-      }
-    });
+    if (image && typeof image !== 'string') {
+      formData.append('image', image); 
+      console.log("Sending NEW file to Cloudinary");
+    } else {
+      console.log("No new file selected, keeping existing image");
+    }
 
-    alert(editData ? "Masterpiece Updated!" : "New Item Added to Vault!");
-    refreshData(); // This calls fetchAll() in AdminVault
-    onClose();
-  } catch (err) {
-    console.error("Vault Error:", err.response?.data || err.message);
-    alert("Error: " + (err.response?.data?.message || "Internal Server Error"));
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      // 2. CLEANER DYNAMIC URL & METHOD using the API instance
+      const endpoint = editData ? `/products/${editData._id}` : `/products`;
+      const method = editData ? 'put' : 'post';
+
+      // We use api[method] (e.g., api.post or api.put)
+      await api[method](endpoint, formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        }
+      });
+
+      alert(editData ? "Masterpiece Updated!" : "New Item Added to Vault!");
+      refreshData(); 
+      onClose();
+    } catch (err) {
+      console.error("Vault Error:", err.response?.data || err.message);
+      alert("Error: " + (err.response?.data?.error || "Internal Server Error"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 

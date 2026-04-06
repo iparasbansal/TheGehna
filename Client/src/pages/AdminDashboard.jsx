@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
-import Papa from 'papaparse'; // Run: npm install papaparse
+// 1. IMPORT YOUR CENTRAL API TOOL
+import api from '../api'; 
+import Papa from 'papaparse'; 
 
 const AdminDashboard = () => {
   const [formData, setFormData] = useState({
@@ -11,29 +12,29 @@ const AdminDashboard = () => {
 
   // --- 1. Single Product Upload Logic ---
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  const token = localStorage.getItem('token'); // Get your token
-  const data = new FormData();
-  data.append('name', formData.name);
-  data.append('price', formData.price);
-  data.append('description', formData.description);
-  data.append('category', formData.category);
-  data.append('image', file); 
+    e.preventDefault();
+    
+    // No need to manually grab token; api.js handles it now!
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('price', formData.price);
+    data.append('description', formData.description);
+    data.append('category', formData.category);
+    data.append('image', file); 
 
-  try {
-    await axios.post('http://localhost:3000/api/v1/products', data, {
-      headers: { 
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}` // ADD THIS LINE
-      }
-    });
-    alert("💎 Masterpiece Securely Uploaded!");
-  } catch (err) {
-    // This will tell you exactly what the backend is complaining about
-    alert(err.response?.data?.error || "Server Error");
-  }
-};
+    try {
+      // 2. UPDATED TO USE api.post
+      await api.post('/products', data, {
+        headers: { 
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      alert("💎 Masterpiece Securely Uploaded!");
+    } catch (err) {
+      console.error("Upload Error:", err);
+      alert(err.response?.data?.error || "Server Error");
+    }
+  };
 
   // --- 2. Bulk CSV Upload Logic ---
   const handleBulkUpload = (e) => {
@@ -47,10 +48,11 @@ const AdminDashboard = () => {
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          // Point this to your new bulk route in the backend
-          const response = await axios.post('http://localhost:3000/api/v1/products/bulk', results.data);
+          // 3. UPDATED TO USE api.post FOR BULK
+          const response = await api.post('/products/bulk', results.data);
           alert(`✅ Success: ${response.data.count} items added to The Vault!`);
         } catch (err) {
+          console.error("Bulk Error:", err);
           alert("Bulk Upload Error: " + (err.response?.data?.error || "Check CSV format"));
         } finally {
           setIsBulkLoading(false);

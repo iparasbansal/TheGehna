@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+// 1. IMPORT YOUR CENTRAL API TOOL
+import api from '../api'; 
 import { useCart } from '../main';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Truck, RotateCcw, ShoppingBag } from 'lucide-react';
@@ -14,10 +15,9 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // FIX 2: Added 's' to 'products' to match your backend route
-        const { data } = await axios.get(`http://localhost:3000/api/v1/products/${id}`);
+        // 2. UPDATED TO USE api.get (NO LOCALHOST STRING NEEDED)
+        const { data } = await api.get(`/products/${id}`);
         
-        // Ensure we are setting the correct data object
         if (data.success) {
           setProduct(data.data);
         }
@@ -30,7 +30,6 @@ const ProductDetails = () => {
     if (id) fetchProduct();
   }, [id]);
 
-  // FIX 3: Using standard hex for background to ensure color consistency
   if (loading) return (
     <div className="h-screen bg-[#633131] flex items-center justify-center text-[#d4a34d] font-serif text-2xl animate-pulse">
       Loading Masterpiece...
@@ -55,7 +54,7 @@ const ProductDetails = () => {
             className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black/20"
           >
             <img 
-              src={product.images?.[0]?.url || 'https://via.placeholder.com/600'} 
+              src={product.images?.[0]?.url || '/logo.png'} 
               alt={product.name} 
               className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
             />

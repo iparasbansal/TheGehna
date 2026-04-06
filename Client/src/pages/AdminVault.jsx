@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+// 1. IMPORT YOUR CENTRAL API TOOL
+import api from '../api'; 
 import AddProductModal from '../components/AddProductModal';
 import { Trash2, Edit, Plus } from 'lucide-react';
 
 const AdminVault = () => {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null); // Track which item to edit
+  const [editingProduct, setEditingProduct] = useState(null); 
 
   const fetchAll = async () => {
     try {
-      const { data } = await axios.get('http://localhost:3000/api/v1/products');
+      // 2. UPDATED TO USE api.get
+      const { data } = await api.get('/products');
       setProducts(data.data);
     } catch (err) {
       console.error("Vault Fetch Error:", err);
@@ -22,24 +24,23 @@ const AdminVault = () => {
   }, []);
 
   const openEditModal = (product) => {
-    setEditingProduct(product); // Set the product data
-    setIsModalOpen(true);       // Open the modal
+    setEditingProduct(product); 
+    setIsModalOpen(true);       
   };
 
   const handleClose = () => {
     setIsModalOpen(false);
-    setEditingProduct(null);    // Reset so "Add New" starts fresh
+    setEditingProduct(null);    
   };
 
   const handleDelete = async (id) => {
-    const token = localStorage.getItem('token');
     if(window.confirm("Remove this masterpiece from the collection?")) {
       try {
-        await axios.delete(`http://localhost:3000/api/v1/products/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        // 3. UPDATED TO USE api.delete (Interceptor handles the token now)
+        await api.delete(`/products/${id}`);
         fetchAll();
       } catch (err) {
+        console.error("Delete Error:", err);
         alert("Delete failed: Admin access required.");
       }
     }
@@ -69,7 +70,8 @@ const AdminVault = () => {
           {products.map((p) => (
             <div key={p._id} className="bg-black/20 border border-white/5 p-4 rounded-2xl flex justify-between items-center group hover:border-[#d4a34d]/50 transition-all">
               <div className="flex gap-6 items-center">
-                <img src={p.images?.[0]?.url || p.image} className="w-16 h-16 object-cover rounded-lg border border-white/10" alt={p.name} />
+                {/* Fixed image logic to prioritize Cloudinary URL */}
+                <img src={p.images?.[0]?.url || p.image || "/logo.png"} className="w-16 h-16 object-cover rounded-lg border border-white/10" alt={p.name} />
                 <div>
                   <h3 className="text-white font-serif text-lg">{p.name}</h3>
                   <p className="text-[#d4a34d] text-sm font-bold">₹{p.price}</p>

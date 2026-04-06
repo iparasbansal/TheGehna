@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { ArrowRight, Sparkles, ChevronDown, Eye, ShoppingBag, X } from "lucide-react"
-import axios from 'axios'
+// 1. IMPORT YOUR CENTRAL API TOOL
+import API from '../api' 
 import { useCart } from '../main' 
 
 // --- 3D ENGINE (CLEAN ELLIPTICAL MOTION) ---
@@ -10,9 +11,7 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
   const timeRef = useRef(0)
 
   const physics = useMemo(() => ({
-    // Slower, more majestic speed for professionalism
     speed: 0.0002 + (index * 0.00005), 
-    // Wider orbits to keep the center name clear
     rangeX: 450 + (index % 4) * 40,
     rangeY: 120 + (index % 3) * 30,
     depth: 200 + (index % 2) * 100,
@@ -25,7 +24,6 @@ function FlyingCard({ product, index, onHover, isHovered, onClick }) {
       timeRef.current += 1
       const t = timeRef.current * physics.speed + physics.phase
       
-      // Clean, majestic elliptical paths
       setPosition({
         x: Math.cos(t) * physics.rangeX,
         y: Math.sin(t * 0.5) * physics.rangeY,
@@ -74,9 +72,14 @@ export default function Home() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await axios.get("http://localhost:3000/api/v1/products")
+        // 2. UPDATED TO USE API.GET (NO LOCALHOST STRING NEEDED)
+        const { data } = await API.get("/products")
         setProducts(data.data)
-      } catch (err) { console.error(err) } finally { setLoading(false) }
+      } catch (err) { 
+        console.error("Vault Connection Failed:", err) 
+      } finally { 
+        setLoading(false) 
+      }
     }
     fetch()
   }, [])
@@ -86,27 +89,14 @@ export default function Home() {
   return (
     <div className="bg-obsidian text-ivory min-h-screen font-sans selection:bg-brand-gold">
       
-      {/* 1. ATMOSPHERIC LAYERS */}
       <div className="fixed inset-0 z-0 bg-[#050505]" />
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-brand-dark/20 to-brand-maroon/10" />
-      
-      {/* 2. THE CENTRAL "CLEARING" GLOW */}
       <div className="fixed inset-0 pointer-events-none z-[5] bg-[radial-gradient(circle_at_center,rgba(212,163,77,0.12)_0%,transparent_50%)]" />
 
-      {/* HERO SECTION */}
       <motion.section style={{ opacity }} className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
-        
-        {/* --- HIGH-CONTRAST GOLDEN BRANDING --- */}
         <div className="z-20 text-center pointer-events-none relative">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            transition={{ duration: 2, ease: "easeOut" }}
-          >
-            {/* The Text with Outer Glow instead of Box */}
-            <h1 className="text-6xl md:text-9xl lg:text-[9vw] font-serif tracking-[0.4em] uppercase leading-none 
-                           text-[#d4a34d] drop-shadow-[0_0_50px_rgba(212,163,77,0.6)] 
-                           selection:text-gold filter brightness-125">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 2, ease: "easeOut" }}>
+            <h1 className="text-6xl md:text-9xl lg:text-[9vw] font-serif tracking-[0.4em] uppercase leading-none text-[#d4a34d] drop-shadow-[0_0_50px_rgba(212,163,77,0.6)] selection:text-gold filter brightness-125">
               THE GEHNA
             </h1>
             <p className="text-[#d4a34d]/60 tracking-[1.5em] text-[9px] md:text-[11px] uppercase mt-12 ml-[1.5em] font-light">
@@ -115,7 +105,6 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* 3D MAJESTIC ORBIT (Wider range to prevent overlap) */}
         <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "2500px", transformStyle: "preserve-3d" }}>
           {products.slice(0, 8).map((p, i) => (
             <FlyingCard key={p._id} product={p} index={i} onHover={setHoveredCard} isHovered={hoveredCard === p._id} onClick={() => setSelectedProduct(p)} />
@@ -130,7 +119,6 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* PRODUCT GRID */}
       <section ref={gridRef} className="relative z-20 py-40 px-6 md:px-24 max-w-[1600px] mx-auto bg-[#050505]">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-16 gap-y-32">
           {products.map((product) => (
@@ -151,7 +139,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* QUICK VIEW MODAL */}
       <AnimatePresence>
         {selectedProduct && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-md flex items-center justify-center p-6" onClick={() => setSelectedProduct(null)}>
@@ -170,7 +157,7 @@ export default function Home() {
       </AnimatePresence>
 
       <footer className="py-24 text-center border-t border-brand-gold/5 opacity-40">
-         <p className="text-brand-gold text-[10px] tracking-[0.8em] uppercase italic">© 2025 THE GEHNA • SANGRUR</p>
+         <p className="text-brand-gold text-[10px] tracking-[0.8em] uppercase italic">© 2026 THE GEHNA • SANGRUR</p>
       </footer>
     </div>
   )

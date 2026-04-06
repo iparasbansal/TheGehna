@@ -2,17 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import axios from 'axios'
+// 1. IMPORT YOUR CENTRAL API TOOL
+import api from './api' 
 
-// 1. Define Contexts
+// Define Contexts
 const CartContext = createContext();
-const AuthContext = createContext(); // New: For Login state
+const AuthContext = createContext(); 
 
-// 2. Auth Provider (The "Memory" for your Login)
-// inside AuthProvider in main.jsx
+// Auth Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Start as loading
+  const [loading, setLoading] = useState(true); 
 
   const checkUser = async () => {
     const token = localStorage.getItem('token');
@@ -23,23 +23,20 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // 1. Set global header so this and future calls work
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // 2. UPDATED: Using our custom 'api' instance 
+      // The interceptor in api.js automatically attaches the 'Bearer ' token
+      const { data } = await api.get('/users/me');
       
-      // 2. Ask the server: "Who owns this token?"
-      const { data } = await axios.get('http://localhost:3000/api/v1/users/me');
-      
-      setUser(data.data); // Store the user in React memory
+      setUser(data.data); 
     } catch (err) {
-      console.error("Session expired or invalid");
+      console.error("Session expired or invalid:", err.message);
       localStorage.removeItem('token');
       setUser(null);
     } finally {
-      setLoading(false); // Stop showing the loading spinner
+      setLoading(false); 
     }
   };
 
-  // 3. This is the "Magic" that runs when you click Back or Refresh
   useEffect(() => {
     checkUser();
   }, []);
@@ -51,7 +48,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// 3. Cart Provider
+// Cart Provider
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -74,11 +71,11 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// 4. Custom Hooks
+// Custom Hooks
 export const useCart = () => useContext(CartContext);
-export const useAuth = () => useContext(AuthContext); // New: use this in Profile.jsx
+export const useAuth = () => useContext(AuthContext); 
 
-// 5. Render with Nested Providers
+// Render with Nested Providers
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>

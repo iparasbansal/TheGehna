@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Eye, ShoppingBag, X } from 'lucide-react';
-import axios from 'axios';
+// 1. IMPORT YOUR CENTRAL API TOOL
+import API from '../api';
 import { useCart } from '../main';
 
 export default function Collection() {
@@ -16,9 +17,14 @@ export default function Collection() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await axios.get("http://localhost:3000/api/v1/products");
+        // 2. UPDATED TO USE API.GET
+        const { data } = await API.get("/products");
         setProducts(data.data);
-      } catch (err) { console.error(err); } finally { setLoading(false); }
+      } catch (err) { 
+        console.error("Vault Collection Error:", err); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetch();
   }, []);
