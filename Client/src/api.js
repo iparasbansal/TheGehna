@@ -1,15 +1,15 @@
 import axios from 'axios';
 
 const API = axios.create({
-    // Fallback to localhost if the Vercel variable isn't set
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
-    timeout: 10000, // 10 seconds timeout for slower Render free-tier wake-ups
+    // REPLACE the URL below with your ACTUAL Render URL
+    baseURL: 'https://thegehna.onrender.com/api/v1', 
+    timeout: 30000, // 30 seconds to allow Render to wake up
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Auto-attach JWT Token from LocalStorage if it exists
+// Auto-attach JWT Token
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
