@@ -23,7 +23,10 @@ const app = express();
 
 // 4. GLOBAL MIDDLEWARE
 app.use(helmet()); 
-app.use(cors());   
+app.use(cors({
+    origin: "https://thegehna.vercel.app", 
+    credentials: true
+}));   
 app.use(express.json()); 
 
 // Debugging Log to verify Cloudinary is ready

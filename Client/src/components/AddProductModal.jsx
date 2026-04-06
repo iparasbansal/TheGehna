@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { X, Upload } from 'lucide-react';
 
 const AddProductModal = ({ isOpen, onClose, refreshData, editData }) => {
